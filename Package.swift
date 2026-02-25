@@ -7,7 +7,8 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "KEFControl",
-            path: "Sources/KEFControl"
+            path: "Sources/KEFControl",
+            exclude: ["Info.plist"]
         )
     ]
 )

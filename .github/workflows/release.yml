@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release binary
+        run: swift build -c release
+
+      - name: Create app bundle
+        run: |
+          APP="KEFControl.app/Contents"
+          mkdir -p "$APP/MacOS"
+          cp Sources/KEFControl/Info.plist "$APP/"
+
+          # Inject version from tag into Info.plist
+          VERSION="${GITHUB_REF_NAME#v}"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$APP/Info.plist"
+
+          cp "$(swift build -c release --show-bin-path)/KEFControl" "$APP/MacOS/"
+
+          # Ad-hoc codesign
+          codesign --force --sign - --deep KEFControl.app
+
+      - name: Create zip
+        run: ditto -c -k --keepParent KEFControl.app KEFControl.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: KEFControl.zip
+          generate_release_notes: true
