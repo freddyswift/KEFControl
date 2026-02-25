@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpeakerMenuView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.openSettings) private var openSettings
 
     @State private var sliderVolume: Double = 0
     @State private var isDraggingVolume = false
@@ -16,8 +17,10 @@ struct SpeakerMenuView: View {
 
             Divider()
 
-            SettingsLink {
-                Text("Settings...")
+            Button("Settings...") {
+                openSettings()
+                // Bring the settings window to front — needed for accessory apps
+                NSApplication.shared.activate(ignoringOtherApps: true)
             }
 
             Button("Quit KEFControl") {
